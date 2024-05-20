@@ -1,18 +1,40 @@
 import random
+import tkinter as tk
+from tkinter import messagebox
 
 class TicTacToe:
 
     def __init__(self):
-        self.board = []
+        self.board = [['-' for _ in range(3)] for _ in range(3)]
+        self.current_player = 'X' if random.randint(0, 1) == 1 else 'O'
+        self.root = tk.Tk()
+        self.root.title("Tic Tac Toe")
+        self.buttons = [[None for _ in range(3)] for _ in range(3)]
+        self.create_board()
 
     def create_board(self):
-        self.board = [['-' for _ in range(3)] for _ in range(3)]
+        for i in range(3):
+            for j in range(3):
+                self.buttons[i][j] = tk.Button(self.root, text=' ', font=('normal', 40), width=5, height=2,
+                                               command=lambda row=i, col=j: self.on_button_click(row, col))
+                self.buttons[i][j].grid(row=i, column=j)
+        self.update_status()
 
-    def get_random_first_player(self):
-        return random.randint(0, 1)
-
-    def fix_spot(self, row, col, player):
-        self.board[row][col] = player
+    def on_button_click(self, row, col):
+        if self.board[row][col] == '-':
+            self.board[row][col] = self.current_player
+            self.buttons[row][col].config(text=self.current_player)
+            if self.has_player_won(self.current_player):
+                messagebox.showinfo("Tic Tac Toe", f"Player {self.current_player} wins!")
+                self.reset_board()
+            elif self.is_board_filled():
+                messagebox.showinfo("Tic Tac Toe", "Match Draw!")
+                self.reset_board()
+            else:
+                self.current_player = 'X' if self.current_player == 'O' else 'O'
+                self.update_status()
+        else:
+            messagebox.showwarning("Tic Tac Toe", "This spot is already taken. Try a different spot.")
 
     def has_player_won(self, player):
         n = len(self.board)
@@ -38,41 +60,19 @@ class TicTacToe:
                     return False
         return True
 
-    def swap_player_turn(self, player):
-        return 'X' if player == 'O' else 'O'
+    def reset_board(self):
+        self.board = [['-' for _ in range(3)] for _ in range(3)]
+        for i in range(3):
+            for j in range(3):
+                self.buttons[i][j].config(text='-')
+        self.current_player = 'X' if random.randint(0, 1) == 1 else 'O'
+        self.update_status()
 
-    def show_board(self):
-        for row in self.board:
-            print(' '.join(row))
-        print()
+    def update_status(self):
+        self.root.title(f"Tic Tac Toe - Player {self.current_player}'s turn")
 
     def start(self):
-        self.create_board()
-        player = 'X' if self.get_random_first_player() == 1 else 'O'
-        game_over = False
-
-        while not game_over:
-            try:
-                self.show_board()
-                print(f'Player {player} turn')
-                row, col = map(int, input('Enter row & column numbers to fix spot (1-3 each): ').split())
-                if self.board[row - 1][col - 1] != '-':
-                    raise ValueError('This spot is already taken. Try a different spot.')
-                self.fix_spot(row - 1, col - 1, player)
-                game_over = self.has_player_won(player)
-                if game_over:
-                    self.show_board()
-                    print(f'Player {player} wins the game!')
-                    continue
-                game_over = self.is_board_filled()
-                if game_over:
-                    self.show_board()
-                    print('Match Draw!')
-                    continue
-                player = self.swap_player_turn(player)
-            except (ValueError, IndexError) as err:
-                print(err)
-                print('Invalid input. Please enter row and column numbers between 1 and 3.')
+        self.root.mainloop()
 
 if __name__ == '__main__':
     tic_tac_toe = TicTacToe()
